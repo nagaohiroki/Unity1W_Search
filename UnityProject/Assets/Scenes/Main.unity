@@ -197,6 +197,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   mMoveSpeed: 10
+  mRotateSpeed: 200
+  mRigidbody: {fileID: 71937810}
+  mCamera: {fileID: 963194228}
 --- !u!1 &102728948
 GameObject:
   m_ObjectHideFlags: 0
