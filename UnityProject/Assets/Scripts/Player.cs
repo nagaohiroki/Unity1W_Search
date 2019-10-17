@@ -19,12 +19,26 @@ public class Player : MonoBehaviour
 		mRigidbody.MovePosition(transform.position + velocity);
 		// 旋回
 		var angle = Vector3.zero;
+		angle.x = -Input.GetAxis("RightVertical");
 		angle.y = Input.GetAxis("RightHorizontal");
-		var rot = transform.rotation.eulerAngles + angle * Time.deltaTime * mRotateSpeed;
+		if(angle == Vector3.zero)
+		{
+			angle.x = -Input.GetAxis("Mouse Y");
+			angle.y = Input.GetAxis("Mouse X");
+		}
+		var rot = transform.rotation.eulerAngles + new Vector3(0.0f, angle.y, 0.0f) * Time.deltaTime * mRotateSpeed;
 		mRigidbody.MoveRotation(Quaternion.Euler(rot));
-		var xangle = Vector3.zero;
-		xangle.x = -Input.GetAxis("RightVertical");
-		var xrot = mCamera.transform.rotation.eulerAngles + xangle * Time.deltaTime * mRotateSpeed;
+		var xrot = mCamera.transform.rotation.eulerAngles + new Vector3(angle.x, 0.0f, 0.0f) * Time.deltaTime * mRotateSpeed;
+		float upAngle = 40.0f;
+		float downAngle = 40.0f;
+		if(xrot.x > 180.0f && xrot.x < 360.0f - upAngle)
+		{
+			xrot.x = 360.0f - upAngle;
+		}
+		if(xrot.x < 180.0f && xrot.x > downAngle)
+		{
+			xrot.x = downAngle;
+		}
 		mCamera.transform.rotation = Quaternion.Euler(xrot);
 	}
 }
