@@ -8,9 +8,9 @@ public class Player : MonoBehaviour
 	[SerializeField]
 	float mRotateSpeed = 0.0f;
 	[SerializeField]
-	float mUpAngle = 0.0f;
+	float mMinAngleX = 0.0f;
 	[SerializeField]
-	float mDownAngle = 0.0f;
+	float mMaxAngleX = 0.0f;
 	[SerializeField]
 	Rigidbody mRigidbody = null;
 	[SerializeField]
@@ -18,27 +18,34 @@ public class Player : MonoBehaviour
 	[SerializeField]
 	RawImage mPhoto = null;
 	[SerializeField]
+	Image mFade = null;
+	[SerializeField]
 	RenderTexture mRenderTexture = null;
+	float mAngleX = 0.0f;
 	// ------------------------------------------------------------------------
 	/// @brief 写真をとる
 	// ------------------------------------------------------------------------
 	void Snap()
 	{
-		if(Input.GetKeyDown(KeyCode.Space))
+		if(!Input.GetKeyDown(KeyCode.Space))
 		{
-			var cam = Camera.main;
-			cam.targetTexture = mRenderTexture;
-			cam.Render();
-			var w = cam.targetTexture.width;
-			var h = cam.targetTexture.height;
-			Texture2D tex = new Texture2D(w, h);
-			RenderTexture.active = cam.targetTexture;
-			tex.ReadPixels(new Rect(0, 0, w, h), 0, 0);
-			tex.Apply();
-			mPhoto.texture = tex;
-			cam.targetTexture = null;
-			RenderTexture.active = null;
+			return;
 		}
+		var cam = Camera.main;
+		cam.targetTexture = mRenderTexture;
+		cam.Render();
+		var w = cam.targetTexture.width;
+		var h = cam.targetTexture.height;
+		Texture2D tex = new Texture2D(w, h);
+		RenderTexture.active = cam.targetTexture;
+		tex.ReadPixels(new Rect(0, 0, w, h), 0, 0);
+		tex.Apply();
+		mPhoto.texture = tex;
+		cam.targetTexture = null;
+		RenderTexture.active = null;
+		mFade.color = Color.white;
+		mFade.CrossFadeAlpha(1.0f, 0.0f, false);
+		mFade.CrossFadeAlpha(0.0f, 1.0f, false);
 	}
 	// ------------------------------------------------------------------------
 	/// @brief 移動
@@ -64,19 +71,13 @@ public class Player : MonoBehaviour
 			angle.x = -Input.GetAxis("Mouse Y");
 			angle.y = Input.GetAxis("Mouse X");
 		}
+		float speed = Time.deltaTime * mRotateSpeed;
+		var roty = transform.rotation.eulerAngles + Vector3.up * angle.y * speed;
+		mRigidbody.MoveRotation(Quaternion.Euler(roty));
 		var cam = Camera.main.transform;
-		var rot = transform.rotation.eulerAngles + new Vector3(0.0f, angle.y, 0.0f) * Time.deltaTime * mRotateSpeed;
-		var xrot = cam.rotation.eulerAngles + new Vector3(angle.x, 0.0f, 0.0f) * Time.deltaTime * mRotateSpeed;
-		if(xrot.x > 180.0f && xrot.x < 360.0f - mUpAngle)
-		{
-			xrot.x = 360.0f - mUpAngle;
-		}
-		if(xrot.x < 180.0f && xrot.x > mDownAngle)
-		{
-			xrot.x = mDownAngle;
-		}
-		mRigidbody.MoveRotation(Quaternion.Euler(rot));
-		cam.rotation = Quaternion.Euler(xrot);
+		mAngleX += angle.x * speed;
+		mAngleX = Mathf.Clamp(mAngleX, mMinAngleX, mMaxAngleX);
+		cam.localEulerAngles = Vector3.right * mAngleX;
 	}
 	// ------------------------------------------------------------------------
 	/// @brief 調べる
