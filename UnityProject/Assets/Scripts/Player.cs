@@ -1,8 +1,15 @@
 ﻿using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
-
 public class Player : MonoBehaviour
 {
+	enum PlayerState
+	{
+		None,
+		Check,
+		GameOver,
+		WaitReset
+	}
 	[SerializeField]
 	float mMoveSpeed = 0.0f;
 	[SerializeField]
@@ -22,6 +29,11 @@ public class Player : MonoBehaviour
 	[SerializeField]
 	RenderTexture mRenderTexture = null;
 	float mAngleX = 0.0f;
+	float mCheckTime = 0.0f;
+	const float mCheckTimeMax = 2.0f;
+	Target mCheckTarget;
+	PlayerState mState = PlayerState.None;
+	bool mHasKey = false;
 	// ------------------------------------------------------------------------
 	/// @brief 写真をとる
 	// ------------------------------------------------------------------------
@@ -46,6 +58,7 @@ public class Player : MonoBehaviour
 		mFade.color = Color.white;
 		mFade.CrossFadeAlpha(1.0f, 0.0f, false);
 		mFade.CrossFadeAlpha(0.0f, 1.0f, false);
+		mPhoto.gameObject.SetActive(true);
 	}
 	// ------------------------------------------------------------------------
 	/// @brief 移動
@@ -82,28 +95,102 @@ public class Player : MonoBehaviour
 	// ------------------------------------------------------------------------
 	/// @brief 調べる
 	// ------------------------------------------------------------------------
-	bool Check()
+	void Check()
 	{
 		RaycastHit hitInfo;
 		var cam = Camera.main.transform;
 		if(!Physics.Raycast(cam.position, cam.forward, out hitInfo, 2.0f, 1 << LayerMask.NameToLayer("Target")))
 		{
 			mScreenMessage.text = string.Empty;
-			return false;
+		}
+		if(hitInfo.collider == null)
+		{
+			return;
 		}
 		mScreenMessage.text = hitInfo.collider.name;
-		if(Input.GetButton("Fire1"))
+		mScreenMessage.color = Color.black;
+		if(Input.GetButtonDown("Fire1"))
 		{
-			hitInfo.collider.transform.Translate(Vector3.up * Time.deltaTime);
-			return true;
+			// 調べる
+			var target = hitInfo.collider.gameObject.GetComponent<Target>();
+			if(target != null)
+			{
+				mCheckTime = mCheckTimeMax;
+				mState = PlayerState.Check;
+				mCheckTarget = target;
+				return;
+			}
+			// キーを取得
+			if(hitInfo.collider.gameObject.name == "Key")
+			{
+				mHasKey = true;
+				Destroy(hitInfo.collider.gameObject);
+			}
+			// クリア
+			if(hitInfo.collider.gameObject.name == "Door")
+			{
+				if(mHasKey)
+				{
+					mState = PlayerState.WaitReset;
+					mScreenMessage.color = Color.black;
+					mScreenMessage.text = "Game Clear";
+					mFade.color = Color.white;
+				}
+			}
 		}
-		return false;
+	}
+	// ------------------------------------------------------------------------
+	/// @brief 調べる中
+	// ------------------------------------------------------------------------
+	void CheckUpdate()
+	{
+		mCheckTime -= Time.deltaTime;
+		if(mCheckTime <= 0.0f)
+		{
+			if(mCheckTarget.mGameOver != null)
+			{
+				mState = PlayerState.GameOver;
+				mCheckTarget.mGameOver.SetActive(true);
+				return;
+			}
+			mState = PlayerState.None;
+			Destroy(mCheckTarget.gameObject);
+			return;
+		}
+		mCheckTarget.gameObject.transform.Translate(0.0f, Time.deltaTime, 0.0f);
+	}
+	// ------------------------------------------------------------------------
+	/// @brief ゲームオーバー演出
+	// ------------------------------------------------------------------------
+	void GameOverUpdate()
+	{
+		if(mCheckTarget.mGameOver == null)
+		{
+			return;
+		}
+		var vec = Camera.main.transform.position - mCheckTarget.mGameOver.transform.position;
+		mCheckTarget.mGameOver.transform.position += vec.normalized * Time.deltaTime * 1.5f;
+		if(vec.magnitude < 0.3f)
+		{
+			mState = PlayerState.WaitReset;
+			mScreenMessage.color = Color.white;
+			mScreenMessage.text = "Game Over";
+			mFade.color = Color.black;
+		}
+	}
+	void InitTarget()
+	{
+		var targets = FindObjectsOfType<Target>();
+		foreach(var target in targets)
+		{
+		}
 	}
 	// ------------------------------------------------------------------------
 	/// @brief 初回更新
 	// ------------------------------------------------------------------------
 	void Start()
 	{
+		InitTarget();
 		Cursor.lockState = CursorLockMode.Locked;
 	}
 	// ------------------------------------------------------------------------
@@ -120,15 +207,30 @@ public class Player : MonoBehaviour
 	// ------------------------------------------------------------------------
 	void Update()
 	{
+		if(mState == PlayerState.WaitReset)
+		{
+			if(Input.GetKeyDown(KeyCode.Space))
+			{
+				SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+			}
+			return;
+		}
+		if(mState == PlayerState.GameOver)
+		{
+			GameOverUpdate();
+			return;
+		}
+		if(mState == PlayerState.Check)
+		{
+			CheckUpdate();
+			return;
+		}
 		// カーソルロック
 		if(Input.GetKeyDown(KeyCode.Escape))
 		{
 			Cursor.lockState = CursorLockMode.None;
 		}
-		if(Check())
-		{
-			return;
-		}
+		Check();
 		Move();
 		Rotate();
 		Snap();
