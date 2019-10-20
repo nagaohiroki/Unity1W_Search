@@ -1,6 +1,8 @@
 ﻿using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
+using System.Collections.Generic;
+using System.Linq;
 public class Player : MonoBehaviour
 {
 	enum PlayerState
@@ -178,19 +180,30 @@ public class Player : MonoBehaviour
 			mFade.color = Color.black;
 		}
 	}
-	void InitTarget()
+	// ------------------------------------------------------------------------
+	/// @brief ターゲットを初期化
+	// ------------------------------------------------------------------------
+	void Awake()
 	{
 		var targets = FindObjectsOfType<Target>();
-		foreach(var target in targets)
+		var list = new List<int>();
+		for(int i = 0; i < targets.Length; i++)
 		{
+			list.Add(i);
 		}
+		list = list.OrderBy(a => System.Guid.NewGuid()).ToList();
+		if(list.Count < 2)
+		{
+			return;
+		}
+		targets[list[0]].mKey = GameObject.Find("Key");
+		targets[list[1]].mGameOver = GameObject.Find("GameOver");
 	}
 	// ------------------------------------------------------------------------
 	/// @brief 初回更新
 	// ------------------------------------------------------------------------
 	void Start()
 	{
-		InitTarget();
 		Cursor.lockState = CursorLockMode.Locked;
 	}
 	// ------------------------------------------------------------------------
