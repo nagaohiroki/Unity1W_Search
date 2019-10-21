@@ -80,7 +80,7 @@ public class Player : MonoBehaviour
 		move.x = Input.GetAxis("LeftHorizontal");
 		move.z = -Input.GetAxis("LeftVertical");
 		var velocity = transform.rotation * move * Time.deltaTime * mMoveSpeed;
-		mRigidbody.MovePosition(transform.position + velocity);
+		mRigidbody.velocity = velocity;
 	}
 	// ------------------------------------------------------------------------
 	/// @brief 旋回
