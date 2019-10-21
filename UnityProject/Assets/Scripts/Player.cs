@@ -162,9 +162,17 @@ public class Player : MonoBehaviour
 			}
 		}
 	}
+	// ------------------------------------------------------------------------
+	/// @brief スコアメッセージ作成
+	///
+	/// @return 
+	// ------------------------------------------------------------------------
 	string MakeClearMessage()
 	{
-		return	"GAME CLEAR!!";
+		var rank = "SABCDEFG";
+		int baseScore = Mathf.Clamp((mPhotoCount + mCheckCount) - 2,0 ,rank.Length - 1);
+		return string.Format("GAME CLEAR!!\nCheck Count x {0}\nPhoto Count x {1}\nScore \"{2}\"",
+		                     mCheckCount, mPhotoCount, rank[baseScore]);
 	}
 	// ------------------------------------------------------------------------
 	/// @brief 調べる中
