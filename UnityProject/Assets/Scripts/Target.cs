@@ -13,7 +13,7 @@ public class Target : MonoBehaviour
 		}
 		if(mKey != null)
 		{
-			mKey.SetActive(true);
+			mKey.SetActive(false);
 			mKey.transform.position = transform.position;
 		}
 		mRotate = transform.rotation;

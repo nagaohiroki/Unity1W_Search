@@ -166,6 +166,10 @@ public class Player : MonoBehaviour
 				mCheckTarget.mGameOver.SetActive(true);
 				return;
 			}
+			if(mCheckTarget.mKey != null)
+			{
+				mCheckTarget.mKey.SetActive(true);
+			}
 			mState = PlayerState.None;
 			Destroy(mCheckTarget.gameObject);
 			return;

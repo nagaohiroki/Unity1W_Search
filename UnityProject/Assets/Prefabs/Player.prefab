@@ -698,8 +698,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   mMoveSpeed: 100
   mRotateSpeed: 100
-  mMinAngleX: -50
-  mMaxAngleX: 50
+  mMinAngleX: -60
+  mMaxAngleX: 60
   mRigidbody: {fileID: 7108137408254697495}
   mScreenMessage: {fileID: 2085578014}
   mPhoto: {fileID: 643580991}
