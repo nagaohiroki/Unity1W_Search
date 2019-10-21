@@ -140,6 +140,7 @@ public class Player : MonoBehaviour
 			mCheckTime = mCheckTimeMax;
 			mState = PlayerState.Check;
 			mCheckTarget = target;
+			Destroy(hitInfo.collider);
 			++mCheckCount;
 			return;
 		}
