@@ -35,7 +35,15 @@ public class Player : MonoBehaviour
 	const float mCheckTimeMax = 2.0f;
 	Target mCheckTarget;
 	PlayerState mState = PlayerState.None;
+	// キーを持っているか
 	bool mHasKey = false;
+	// 時間
+	float mTimer = 0.0f;
+	// 時間
+	int mCheckCount = 0;
+	// 写真の回数
+	int mPhotoCount = 0;
+
 	// ------------------------------------------------------------------------
 	/// @brief 写真をとる
 	// ------------------------------------------------------------------------
@@ -70,6 +78,7 @@ public class Player : MonoBehaviour
 		mFade.CrossFadeAlpha(1.0f, 0.0f, false);
 		mFade.CrossFadeAlpha(0.0f, 1.0f, false);
 		mPhoto.gameObject.SetActive(true);
+		++mPhotoCount;
 	}
 	// ------------------------------------------------------------------------
 	/// @brief 移動
@@ -131,6 +140,7 @@ public class Player : MonoBehaviour
 			mCheckTime = mCheckTimeMax;
 			mState = PlayerState.Check;
 			mCheckTarget = target;
+			++mCheckCount;
 			return;
 		}
 		// キーを取得
@@ -147,10 +157,14 @@ public class Player : MonoBehaviour
 				mState = PlayerState.WaitReset;
 				mScreenMessage.color = Color.black;
 				mFade.CrossFadeAlpha(1.0f, 0.0f, false);
-				mScreenMessage.text = "GAME CLEAR!!";
+				mScreenMessage.text = MakeClearMessage();
 				mFade.color = Color.white;
 			}
 		}
+	}
+	string MakeClearMessage()
+	{
+		return	"GAME CLEAR!!";
 	}
 	// ------------------------------------------------------------------------
 	/// @brief 調べる中
@@ -213,7 +227,6 @@ public class Player : MonoBehaviour
 			return;
 		}
 		targets[list[0]].mKey = GameObject.Find("Key");
-		targets[list[1]].mGameOver = GameObject.Find("GameOver");
 	}
 	// ------------------------------------------------------------------------
 	/// @brief 初回更新
@@ -263,5 +276,6 @@ public class Player : MonoBehaviour
 		Move();
 		Rotate();
 		Photo();
+		mTimer += Time.deltaTime;
 	}
 }
