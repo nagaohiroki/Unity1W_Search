@@ -119,7 +119,7 @@ public class Player : MonoBehaviour
 			return;
 		}
 		mScreenMessage.text = hitInfo.collider.name;
-		mScreenMessage.color = Color.black;
+		mScreenMessage.color = Color.white;
 		if(!Input.GetButtonDown("Fire1"))
 		{
 			return;
