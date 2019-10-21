@@ -39,15 +39,24 @@ public class Player : MonoBehaviour
 	// ------------------------------------------------------------------------
 	/// @brief 写真をとる
 	// ------------------------------------------------------------------------
-	void Snap()
+	void Photo()
 	{
 		if(!Input.GetKeyDown(KeyCode.Space))
 		{
 			return;
 		}
+		var targets = FindObjectsOfType<Target>();
 		var cam = Camera.main;
 		cam.targetTexture = mRenderTexture;
+		foreach(var target in targets)
+		{
+			target.PhotoMode(true);
+		}
 		cam.Render();
+		foreach(var target in targets)
+		{
+			target.PhotoMode(false);
+		}
 		var w = cam.targetTexture.width;
 		var h = cam.targetTexture.height;
 		Texture2D tex = new Texture2D(w, h);
@@ -111,33 +120,35 @@ public class Player : MonoBehaviour
 		}
 		mScreenMessage.text = hitInfo.collider.name;
 		mScreenMessage.color = Color.black;
-		if(Input.GetButtonDown("Fire1"))
+		if(!Input.GetButtonDown("Fire1"))
 		{
-			// 調べる
-			var target = hitInfo.collider.gameObject.GetComponent<Target>();
-			if(target != null)
+			return;
+		}
+		// 調べる
+		var target = hitInfo.collider.gameObject.GetComponent<Target>();
+		if(target != null)
+		{
+			mCheckTime = mCheckTimeMax;
+			mState = PlayerState.Check;
+			mCheckTarget = target;
+			return;
+		}
+		// キーを取得
+		if(hitInfo.collider.gameObject.name == "Key")
+		{
+			mHasKey = true;
+			Destroy(hitInfo.collider.gameObject);
+		}
+		// クリア
+		if(hitInfo.collider.gameObject.name == "Door")
+		{
+			if(mHasKey)
 			{
-				mCheckTime = mCheckTimeMax;
-				mState = PlayerState.Check;
-				mCheckTarget = target;
-				return;
-			}
-			// キーを取得
-			if(hitInfo.collider.gameObject.name == "Key")
-			{
-				mHasKey = true;
-				Destroy(hitInfo.collider.gameObject);
-			}
-			// クリア
-			if(hitInfo.collider.gameObject.name == "Door")
-			{
-				if(mHasKey)
-				{
-					mState = PlayerState.WaitReset;
-					mScreenMessage.color = Color.black;
-					mScreenMessage.text = "Game Clear";
-					mFade.color = Color.white;
-				}
+				mState = PlayerState.WaitReset;
+				mScreenMessage.color = Color.black;
+				mFade.CrossFadeAlpha(1.0f, 0.0f, false);
+				mScreenMessage.text = "GAME CLEAR!!";
+				mFade.color = Color.white;
 			}
 		}
 	}
@@ -176,7 +187,8 @@ public class Player : MonoBehaviour
 		{
 			mState = PlayerState.WaitReset;
 			mScreenMessage.color = Color.white;
-			mScreenMessage.text = "Game Over";
+			mScreenMessage.text = "GAME OVER..";
+			mFade.CrossFadeAlpha(1.0f, 0.0f, false);
 			mFade.color = Color.black;
 		}
 	}
@@ -246,6 +258,6 @@ public class Player : MonoBehaviour
 		Check();
 		Move();
 		Rotate();
-		Snap();
+		Photo();
 	}
 }
